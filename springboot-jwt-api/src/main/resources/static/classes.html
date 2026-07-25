@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Classes — School Management</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<div id="navbar"></div>
+<div class="container pb-5"><div id="crud"></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/app.js"></script>
+<script src="js/crud.js"></script>
+<script>
+  requireAuth();
+  renderNavbar('classes.html');
+  initCrud({
+    title: 'Classes',
+    api: '/classes',
+    perm: 'class',
+    columns: [
+      { key: 'classCode', label: 'Code' },
+      { key: 'name', label: 'Name' },
+      { key: 'academicYear', label: 'Academic year' },
+      { key: 'teacherName', label: 'Homeroom teacher' },
+      { key: 'capacity', label: 'Capacity' }
+    ],
+    fields: [
+      { key: 'classCode', label: 'Class code', required: true },
+      { key: 'name', label: 'Name', required: true },
+      { key: 'academicYear', label: 'Academic year', help: 'e.g. 2025-2026' },
+      { key: 'teacherId', label: 'Homeroom teacher', type: 'select',
+        optionsLoader: async () => {
+          const res = await api('/teachers?size=100&sort=firstName,asc');
+          return res.data.content.map(t => ({ value: t.id, label: t.teacherCode + ' — ' + t.firstName + ' ' + t.lastName }));
+        } },
+      { key: 'capacity', label: 'Capacity', type: 'number' }
+    ],
+    toPayload: v => ({ ...v, teacherId: v.teacherId ? Number(v.teacherId) : null })
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard — School Management</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<div id="navbar"></div>
+<div class="container pb-5">
+  <h4 class="mb-4">Dashboard</h4>
+  <div class="row g-3 mb-4" id="cards"></div>
+
+  <div class="row g-4">
+    <div class="col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-header bg-white fw-semibold">Recent enrollments</div>
+        <div class="table-responsive">
+          <table class="table table-sm mb-0 align-middle">
+            <thead class="table-light"><tr><th>Student</th><th>Class</th><th>Enrolled</th></tr></thead>
+            <tbody id="recent-enrollments"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-header bg-white fw-semibold">Recent activity</div>
+        <div class="table-responsive">
+          <table class="table table-sm mb-0 align-middle">
+            <thead class="table-light"><tr><th>User</th><th>Action</th><th>Entity</th><th>When</th></tr></thead>
+            <tbody id="recent-activities"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/app.js"></script>
+<script>
+  requireAuth();
+  renderNavbar('index.html');
+
+  const CARDS = [
+    { key: 'students', label: 'Students', icon: '🎓', color: 'primary' },
+    { key: 'teachers', label: 'Teachers', icon: '👩‍🏫', color: 'success' },
+    { key: 'subjects', label: 'Subjects', icon: '📚', color: 'info' },
+    { key: 'classes', label: 'Classes', icon: '🏫', color: 'warning' },
+    { key: 'enrollments', label: 'Enrollments', icon: '📝', color: 'danger' },
+    { key: 'users', label: 'Users', icon: '👤', color: 'secondary' }
+  ];
+
+  (async () => {
+    try {
+      const res = await api('/dashboard/summary');
+      const d = res.data;
+      document.getElementById('cards').innerHTML = CARDS.map(c =>
+        '<div class="col-6 col-md-4 col-xl-2"><div class="card shadow-sm border-0 border-start border-4 border-' + c.color + '">' +
+        '<div class="card-body py-3"><div class="small text-muted">' + c.icon + ' ' + c.label + '</div>' +
+        '<div class="fs-3 fw-bold">' + d[c.key] + '</div></div></div></div>').join('');
+
+      document.getElementById('recent-enrollments').innerHTML = (d.recentEnrollments || []).map(e =>
+        '<tr><td>' + esc(e.studentCode) + ' — ' + esc(e.studentName) + '</td><td>' + esc(e.className) +
+        '</td><td class="text-muted small">' + fmtDate(e.enrolledAt) + '</td></tr>').join('') ||
+        '<tr><td colspan="3" class="text-center text-muted py-3">No data</td></tr>';
+
+      document.getElementById('recent-activities').innerHTML = (d.recentActivities || []).map(a =>
+        '<tr><td>' + esc(a.username) + '</td><td><span class="badge text-bg-light">' + esc(a.action) +
+        '</span></td><td>' + esc(a.entityType || '') + (a.entityId ? ' #' + esc(a.entityId) : '') +
+        '</td><td class="text-muted small">' + fmtDate(a.createdAt) + '</td></tr>').join('') ||
+        '<tr><td colspan="4" class="text-center text-muted py-3">No data</td></tr>';
+    } catch (err) {
+      toast(errorMessage(err), false);
+    }
+  })();
+</script>
+</body>
+</html>

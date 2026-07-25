@@ -1,0 +1,536 @@
+{
+  "info": {
+    "name": "School Management System API",
+    "description": "Complete REST API collection for the School Management System (Spring Boot, JWT).\n\nHow to use:\n1. Run 'Auth / Login' first — a test script stores accessToken + refreshToken in collection variables.\n2. Every other request inherits Bearer auth from the collection.\n\nDemo accounts: admin/admin@123 (all permissions), teacher1/teacher@123 (read master data + manage enrollments/grades), student1/student@123 (read-only).\n\nBase URL variable: {{baseUrl}} = http://localhost:30033/api/v1",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:30033/api/v1" },
+    { "key": "accessToken", "value": "" },
+    { "key": "refreshToken", "value": "" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.data) {",
+                  "  pm.collectionVariables.set('accessToken', body.data.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', body.data.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin@123\"\n}" },
+            "url": "{{baseUrl}}/auth/login",
+            "description": "Authenticate with username (or email) + password. Returns access token (~15 min), refresh token (~24 h) and the user profile incl. roles and permissions."
+          }
+        },
+        {
+          "name": "Refresh token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.data) pm.collectionVariables.set('accessToken', body.data.accessToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}" },
+            "url": "{{baseUrl}}/auth/refresh",
+            "description": "Exchange a valid refresh token for a new access token."
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/logout",
+            "description": "Revokes all refresh tokens of the current user (requires Bearer token)."
+          }
+        },
+        {
+          "name": "Forgot password",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"student1@school.edu.kh\"\n}" },
+            "url": "{{baseUrl}}/auth/forgot-password",
+            "description": "Requests a single-use reset token (30 min expiry). In this demo the token is written to the application log instead of being emailed."
+          }
+        },
+        {
+          "name": "Reset password",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"token\": \"<token-from-server-log>\",\n  \"newPassword\": \"newpass@123\"\n}" },
+            "url": "{{baseUrl}}/auth/reset-password",
+            "description": "Sets a new password using a valid, unused, unexpired reset token. The token becomes unusable afterwards and all refresh tokens are revoked."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "List users",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/users?search=&page=0&size=10&sort=id,desc",
+            "description": "Permission: user.read. Search matches username, email, first/last name."
+          }
+        },
+        {
+          "name": "Get user by id",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/users/2",
+            "description": "Permission: user.read."
+          }
+        },
+        {
+          "name": "Create user",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"teacher2\",\n  \"email\": \"teacher2@school.edu.kh\",\n  \"password\": \"teacher@123\",\n  \"firstName\": \"New\",\n  \"lastName\": \"Teacher\",\n  \"phoneNumber\": \"012999999\",\n  \"roles\": [\"ROLE_TEACHER\"]\n}" },
+            "url": "{{baseUrl}}/users",
+            "description": "Permission: user.create. Password is required on create; username and email must be unique."
+          }
+        },
+        {
+          "name": "Update user",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"teacher2\",\n  \"email\": \"teacher2@school.edu.kh\",\n  \"firstName\": \"Updated\",\n  \"lastName\": \"Teacher\",\n  \"phoneNumber\": \"012999998\",\n  \"roles\": [\"ROLE_TEACHER\"]\n}" },
+            "url": "{{baseUrl}}/users/4",
+            "description": "Permission: user.update. Leave password out (or blank) to keep the current one; include it to change it."
+          }
+        },
+        {
+          "name": "Delete user (soft)",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/users/4",
+            "description": "Permission: user.delete. Soft delete — the user can no longer log in; refresh tokens are revoked."
+          }
+        },
+        {
+          "name": "Assign roles to user",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"roles\": [\"ROLE_TEACHER\", \"ROLE_ADMIN\"]\n}" },
+            "url": "{{baseUrl}}/users/2/roles",
+            "description": "Permission: user.update. Replaces the user's role set."
+          }
+        },
+        {
+          "name": "My profile",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/users/me",
+            "description": "Any authenticated user. Returns own profile with roles and permissions."
+          }
+        },
+        {
+          "name": "Change my password",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"currentPassword\": \"admin@123\",\n  \"newPassword\": \"admin@1234\"\n}" },
+            "url": "{{baseUrl}}/users/me/password",
+            "description": "Any authenticated user. Verifies the current password, then revokes all refresh tokens."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Roles & Permissions",
+      "item": [
+        {
+          "name": "List roles",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/roles",
+            "description": "Permission: role.read. Each role includes its permission codes."
+          }
+        },
+        {
+          "name": "List permissions",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/permissions",
+            "description": "Permission: role.read. All permission codes in the system."
+          }
+        },
+        {
+          "name": "Replace role permissions",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"permissions\": [\n    \"student.read\", \"teacher.read\", \"subject.read\", \"class.read\",\n    \"enrollment.create\", \"enrollment.read\", \"enrollment.update\", \"enrollment.delete\",\n    \"grade.create\", \"grade.read\", \"grade.update\", \"grade.delete\",\n    \"dashboard.read\"\n  ]\n}" },
+            "url": "{{baseUrl}}/roles/2/permissions",
+            "description": "Permission: role.update. Replaces the full permission set of a role (role 2 = ROLE_TEACHER in seed data)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Dashboard summary",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/dashboard/summary",
+            "description": "Permission: dashboard.read. Active counts (students, teachers, subjects, classes, enrollments, users) plus 5 most recent enrollments and audit entries."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Students",
+      "item": [
+        {
+          "name": "List students",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/students?search=&page=0&size=10&sort=id,desc",
+            "description": "Permission: student.read. Search matches student code and name."
+          }
+        },
+        {
+          "name": "Get student by id",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/students/1",
+            "description": "Permission: student.read."
+          }
+        },
+        {
+          "name": "Create student",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"studentCode\": \"S020\",\n  \"firstName\": \"Sokun\",\n  \"lastName\": \"Chan\",\n  \"gender\": \"M\",\n  \"dateOfBirth\": \"2009-05-01\",\n  \"email\": \"sokun.chan@student.school.edu.kh\",\n  \"phone\": \"011000020\",\n  \"address\": \"Phnom Penh\"\n}" },
+            "url": "{{baseUrl}}/students",
+            "description": "Permission: student.create. Student code must be unique; date of birth must be in the past; score of validation errors returned as errors[]."
+          }
+        },
+        {
+          "name": "Update student",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"studentCode\": \"S020\",\n  \"firstName\": \"Sokun\",\n  \"lastName\": \"Chan\",\n  \"gender\": \"M\",\n  \"dateOfBirth\": \"2009-05-01\",\n  \"email\": \"sokun.chan@student.school.edu.kh\",\n  \"phone\": \"011000021\",\n  \"address\": \"Kandal\"\n}" },
+            "url": "{{baseUrl}}/students/12",
+            "description": "Permission: student.update."
+          }
+        },
+        {
+          "name": "Delete student (soft)",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/students/12",
+            "description": "Permission: student.delete. Sets status = DEL; the record disappears from lists but history (enrollments/grades) is preserved."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Teachers",
+      "item": [
+        {
+          "name": "List teachers",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/teachers?search=&page=0&size=10&sort=id,desc",
+            "description": "Permission: teacher.read. Search matches code, name and specialization."
+          }
+        },
+        {
+          "name": "Get teacher by id",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/teachers/1",
+            "description": "Permission: teacher.read."
+          }
+        },
+        {
+          "name": "Create teacher",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"teacherCode\": \"T010\",\n  \"firstName\": \"Pisey\",\n  \"lastName\": \"Sao\",\n  \"gender\": \"F\",\n  \"email\": \"pisey.sao@school.edu.kh\",\n  \"phone\": \"012000010\",\n  \"specialization\": \"Chemistry\"\n}" },
+            "url": "{{baseUrl}}/teachers",
+            "description": "Permission: teacher.create. Teacher code must be unique."
+          }
+        },
+        {
+          "name": "Update teacher",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"teacherCode\": \"T010\",\n  \"firstName\": \"Pisey\",\n  \"lastName\": \"Sao\",\n  \"gender\": \"F\",\n  \"email\": \"pisey.sao@school.edu.kh\",\n  \"phone\": \"012000011\",\n  \"specialization\": \"Chemistry & Biology\"\n}" },
+            "url": "{{baseUrl}}/teachers/5",
+            "description": "Permission: teacher.update."
+          }
+        },
+        {
+          "name": "Delete teacher (soft)",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/teachers/5",
+            "description": "Permission: teacher.delete."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Subjects",
+      "item": [
+        {
+          "name": "List subjects",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/subjects?search=&page=0&size=10&sort=id,desc",
+            "description": "Permission: subject.read. Search matches code and name."
+          }
+        },
+        {
+          "name": "Get subject by id",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/subjects/1",
+            "description": "Permission: subject.read."
+          }
+        },
+        {
+          "name": "Create subject",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"subjectCode\": \"CHEM101\",\n  \"name\": \"Chemistry\",\n  \"credit\": 3,\n  \"description\": \"General chemistry\"\n}" },
+            "url": "{{baseUrl}}/subjects",
+            "description": "Permission: subject.create. Subject code must be unique; credit 1-20."
+          }
+        },
+        {
+          "name": "Update subject",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"subjectCode\": \"CHEM101\",\n  \"name\": \"Chemistry\",\n  \"credit\": 4,\n  \"description\": \"General and organic chemistry\"\n}" },
+            "url": "{{baseUrl}}/subjects/7",
+            "description": "Permission: subject.update."
+          }
+        },
+        {
+          "name": "Delete subject (soft)",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/subjects/7",
+            "description": "Permission: subject.delete."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Classes",
+      "item": [
+        {
+          "name": "List classes",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/classes?search=&page=0&size=10&sort=id,desc",
+            "description": "Permission: class.read. Search matches code, name and academic year. Response includes homeroom teacherName."
+          }
+        },
+        {
+          "name": "Get class by id",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/classes/1",
+            "description": "Permission: class.read."
+          }
+        },
+        {
+          "name": "Create class",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"classCode\": \"C12A\",\n  \"name\": \"Grade 12A\",\n  \"academicYear\": \"2025-2026\",\n  \"teacherId\": 3,\n  \"capacity\": 25\n}" },
+            "url": "{{baseUrl}}/classes",
+            "description": "Permission: class.create. Class code unique; academicYear format YYYY-YYYY; teacherId optional but must reference an active teacher."
+          }
+        },
+        {
+          "name": "Update class",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"classCode\": \"C12A\",\n  \"name\": \"Grade 12A\",\n  \"academicYear\": \"2025-2026\",\n  \"teacherId\": 2,\n  \"capacity\": 30\n}" },
+            "url": "{{baseUrl}}/classes/4",
+            "description": "Permission: class.update."
+          }
+        },
+        {
+          "name": "Delete class (soft)",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/classes/4",
+            "description": "Permission: class.delete."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Enrollments",
+      "item": [
+        {
+          "name": "List enrollments",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/enrollments?page=0&size=10&sort=id,desc",
+            "description": "Permission: enrollment.read. Optional filters: &studentId=1 and/or &classId=1. Responses are enriched with student and class names."
+          }
+        },
+        {
+          "name": "Enroll student into class",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"studentId\": 1,\n  \"classId\": 2\n}" },
+            "url": "{{baseUrl}}/enrollments",
+            "description": "Permission: enrollment.create. Rejects duplicate enrollment (409) and enforces class capacity."
+          }
+        },
+        {
+          "name": "Remove enrollment (soft)",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/enrollments/11",
+            "description": "Permission: enrollment.delete. Grades of the enrollment are preserved."
+          }
+        },
+        {
+          "name": "Enrollments of a class",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/classes/1/enrollments",
+            "description": "Permission: enrollment.read."
+          }
+        },
+        {
+          "name": "Enrollments of a student",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/students/1/enrollments",
+            "description": "Permission: enrollment.read."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Grades",
+      "item": [
+        {
+          "name": "Record grade",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"enrollmentId\": 1,\n  \"subjectId\": 2,\n  \"score\": 77.5,\n  \"term\": \"S1\"\n}" },
+            "url": "{{baseUrl}}/grades",
+            "description": "Permission: grade.create. Score must be 0-100; one grade per enrollment + subject + term (409 if it already exists). gradedBy is stamped from the JWT."
+          }
+        },
+        {
+          "name": "Update grade",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"enrollmentId\": 1,\n  \"subjectId\": 2,\n  \"score\": 82.0,\n  \"term\": \"S1\"\n}" },
+            "url": "{{baseUrl}}/grades/13",
+            "description": "Permission: grade.update. Only score/term can change — enrollment and subject are fixed."
+          }
+        },
+        {
+          "name": "Delete grade (soft)",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/grades/13",
+            "description": "Permission: grade.delete."
+          }
+        },
+        {
+          "name": "Grades of an enrollment",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/enrollments/1/grades",
+            "description": "Permission: grade.read. Enriched with subject code and name."
+          }
+        },
+        {
+          "name": "Grades of a student",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/students/1/grades",
+            "description": "Permission: grade.read. All grades across the student's active enrollments."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Audit Log",
+      "item": [
+        {
+          "name": "Search audit logs",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/audit-logs?username=&action=&entityType=&page=0&size=15&sort=id,desc",
+            "description": "Permission: audit.read (admin only in seed data). Filters: username (contains), action (LOGIN, LOGOUT, CREATE, UPDATE, DELETE, UPDATE_ROLES, CHANGE_PASSWORD, FORGOT_PASSWORD, RESET_PASSWORD), entityType (AUTH, USER, ROLE, STUDENT, TEACHER, SUBJECT, CLASS, ENROLLMENT, GRADE), from/to dates as YYYY-MM-DD."
+          }
+        },
+        {
+          "name": "Audit logs — filtered example",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/audit-logs?username=teacher&action=CREATE&entityType=GRADE&from=2026-07-01&to=2026-07-31&page=0&size=15",
+            "description": "Permission: audit.read. Example with all filters applied."
+          }
+        }
+      ]
+    }
+  ]
+}

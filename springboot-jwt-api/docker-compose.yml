@@ -1,10 +1,13 @@
 version: '3'
 services:
-  web-content-api:
-    container_name: web-content-management-api
+  school-management-api:
+    container_name: school-management-api
     build: .
     ports:
       - "30033:30033"
     restart: always
-    volumes:
-      - /opt/projects/teach/upload/images:/opt/projects/teach/upload/images
+    environment:
+      # The containerized app reaches the host's PostgreSQL via host.docker.internal
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/school_management_db
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

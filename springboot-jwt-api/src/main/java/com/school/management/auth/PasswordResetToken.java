@@ -1,0 +1,36 @@
+package com.school.management.auth;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.time.LocalDateTime;
+
+@Getter
+@Setter
+@Entity
+@Table(name = "password_reset_tokens")
+public class PasswordResetToken {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "user_id", nullable = false)
+    private Integer userId;
+
+    @Column(nullable = false, unique = true, length = 100)
+    private String token;
+
+    @Column(name = "expiry_date", nullable = false)
+    private LocalDateTime expiryDate;
+
+    /** Y once consumed — tokens are single-use. */
+    @Column(nullable = false, length = 1)
+    private String used;
+}

@@ -1,9 +1,12 @@
 spring:
+  application:
+    name: school-management-system
+
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/web_content_management_db
+    url: jdbc:postgresql://localhost:5432/school_management_db
     username: postgres
-    password: 1234
+    password: 12345678
 
   jpa:
     properties:
@@ -11,7 +14,8 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: none
-    show-sql: true
+    show-sql: false
+    open-in-view: false
 
   flyway:
     enabled: true
@@ -19,32 +23,16 @@ spring:
     baseline-on-migrate: true
     baseline-version: 0
 
-  otp:
-    sms:
-      expire: 10
-      template: "This is one time security code. Don't tell anyone."
-      enbaled: Y
-
-  servlet:
-    multipart:
-      max-file-size: 50MB
-      max-request-size: 50MB
-
-  upload:
-    server:
-      path: /opt/projects/teach/upload/images/
-    client:
-      path: /image/**
-
 server:
   port: 30033
 
-post:
-  free:
-    app:
-      jwtSecret: ebe8910a-08c0-11ed-861d-0242ac120002
-      jwtExpirationMs: 300000
-      jwtRefreshExpirationMs: 86400000
+app:
+  jwt:
+    secret: ebe8910a-08c0-11ed-861d-0242ac120002
+    expirationMs: 900000            # access token: 15 minutes
+    refreshExpirationMs: 86400000   # refresh token: 24 hours
+  password-reset:
+    expirationMinutes: 30
 
 springdoc:
   swagger-ui:
@@ -55,14 +43,5 @@ springdoc:
     try-it-out-enabled: true
   api-docs:
     path: /v3/api-docs
-  packages-to-scan: com.dinsaren.springbootjwtapi.controllers
+  packages-to-scan: com.school.management
   paths-to-match: /**
-
-api:
-  response-codes:
-    ok:
-      desc: OK
-    badRequest:
-      desc: BAD_REQUEST
-    notFound:
-      desc: NOT_FOUND

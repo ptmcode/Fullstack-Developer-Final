@@ -1,30 +1,82 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:get/get.dart';
 
-import 'package:simple_state_management_app/main.dart';
+import 'package:school_management_app/app/core/widgets/shared_widgets.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  tearDown(Get.reset);
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  group('StatusChip', () {
+    testWidgets('maps ACT to Active', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(home: Scaffold(body: StatusChip.status('ACT'))),
+      );
+      expect(find.text('Active'), findsOneWidget);
+    });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    testWidgets('maps DEL to Deleted', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(home: Scaffold(body: StatusChip.status('DEL'))),
+      );
+      expect(find.text('Deleted'), findsOneWidget);
+    });
+  });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  group('PaginationBar', () {
+    testWidgets('shows record count and page position', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: PaginationBar(
+              page: 1,
+              totalPages: 6,
+              totalElements: 11,
+              onPrevious: () {},
+              onNext: () {},
+            ),
+          ),
+        ),
+      );
+      expect(find.text('11 records'), findsOneWidget);
+      expect(find.text('Page 2 of 6'), findsOneWidget);
+    });
+
+    testWidgets('hides itself when there are no records', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: PaginationBar(
+              page: 0,
+              totalPages: 0,
+              totalElements: 0,
+              onPrevious: () {},
+              onNext: () {},
+            ),
+          ),
+        ),
+      );
+      expect(find.byType(IconButton), findsNothing);
+    });
+  });
+
+  group('EmptyState', () {
+    testWidgets('renders message and action', (tester) async {
+      var tapped = false;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: EmptyState(
+              message: 'No students found',
+              actionLabel: 'Add',
+              onAction: () => tapped = true,
+            ),
+          ),
+        ),
+      );
+      expect(find.text('No students found'), findsOneWidget);
+      await tester.tap(find.text('Add'));
+      expect(tapped, isTrue);
+    });
   });
 }

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Enrollments — School Management</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<div id="navbar"></div>
+<div class="container pb-5">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">Enrollments</h4>
+  </div>
+
+  <!-- Enroll form -->
+  <div class="card shadow-sm mb-4" id="enroll-card" style="display:none">
+    <div class="card-body">
+      <div class="row g-2 align-items-end">
+        <div class="col-md-5">
+          <label class="form-label">Student</label>
+          <select class="form-select" id="enroll-student"></select>
+        </div>
+        <div class="col-md-5">
+          <label class="form-label">Class</label>
+          <select class="form-select" id="enroll-class"></select>
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-primary w-100" id="btn-enroll">Enroll</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter + table -->
+  <div class="row mb-3">
+    <div class="col-md-4">
+      <select class="form-select" id="filter-class"><option value="">All classes</option></select>
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead class="table-light">
+      <tr><th>Student</th><th>Class</th><th>Enrolled at</th><th style="width:190px">Actions</th></tr>
+      </thead>
+      <tbody id="enroll-body"></tbody>
+    </table>
+  </div>
+  <div class="d-flex justify-content-between align-items-center">
+    <small class="text-muted" id="enroll-count"></small>
+    <nav><ul class="pagination pagination-sm mb-0" id="enroll-pages"></ul></nav>
+  </div>
+</div>
+
+<!-- Grades modal -->
+<div class="modal fade" id="grades-modal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="grades-title">Grades</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <table class="table table-sm align-middle">
+          <thead class="table-light">
+          <tr><th>Subject</th><th>Term</th><th>Score</th><th>Graded by</th><th style="width:120px"></th></tr>
+          </thead>
+          <tbody id="grades-body"></tbody>
+        </table>
+        <div class="row g-2 align-items-end border-top pt-3" id="grade-form" style="display:none">
+          <div class="col-md-4">
+            <label class="form-label">Subject</label>
+            <select class="form-select" id="grade-subject"></select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Term</label>
+            <select class="form-select" id="grade-term">
+              <option>S1</option><option>S2</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Score (0-100)</label>
+            <input type="number" class="form-control" id="grade-score" min="0" max="100" step="0.25">
+          </div>
+          <div class="col-md-2">
+            <button class="btn btn-primary w-100" id="btn-grade">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/app.js"></script>
+<script>
+  requireAuth();
+  renderNavbar('enrollments.html');
+
+  const state = { page: 0, size: 10, classId: '', total: 0 };
+  let gradesModal, currentEnrollment = null, editingGradeId = null;
+
+  async function loadOptions() {
+    const [students, classes, subjects] = await Promise.all([
+      api('/students?size=100&sort=studentCode,asc'),
+      api('/classes?size=100&sort=classCode,asc'),
+      api('/subjects?size=100&sort=subjectCode,asc')
+    ]);
+    const sOpts = students.data.content.map(s =>
+      '<option value="' + s.id + '">' + esc(s.studentCode + ' — ' + s.firstName + ' ' + s.lastName) + '</option>').join('');
+    const cOpts = classes.data.content.map(c =>
+      '<option value="' + c.id + '">' + esc(c.classCode + ' — ' + c.name) + '</option>').join('');
+    if (hasPerm('enrollment.create')) {
+      document.getElementById('enroll-card').style.display = '';
+      document.getElementById('enroll-student').innerHTML = sOpts;
+      document.getElementById('enroll-class').innerHTML = cOpts;
+    }
+    document.getElementById('filter-class').innerHTML += cOpts;
+    document.getElementById('grade-subject').innerHTML = subjects.data.content.map(s =>
+      '<option value="' + s.id + '">' + esc(s.subjectCode + ' — ' + s.name) + '</option>').join('');
+  }
+
+  async function load() {
+    const res = await api('/enrollments?page=' + state.page + '&size=' + state.size +
+      (state.classId ? '&classId=' + state.classId : ''));
+    const data = res.data;
+    document.getElementById('enroll-count').textContent = data.totalElements + ' record(s)';
+    document.getElementById('enroll-body').innerHTML = data.content.map(e => {
+      let actions = '<button class="btn btn-sm btn-outline-secondary me-1" data-grades="' + e.id +
+        '" data-label="' + esc(e.studentName + ' · ' + e.className) + '">Grades</button>';
+      if (hasPerm('enrollment.delete')) {
+        actions += '<button class="btn btn-sm btn-outline-danger" data-del="' + e.id + '">Remove</button>';
+      }
+      return '<tr><td>' + esc(e.studentCode) + ' — ' + esc(e.studentName) + '</td>' +
+        '<td>' + esc(e.classCode) + ' — ' + esc(e.className) + '</td>' +
+        '<td class="text-muted small">' + fmtDate(e.enrolledAt) + '</td><td>' + actions + '</td></tr>';
+    }).join('') || '<tr><td colspan="4" class="text-center text-muted py-4">No data</td></tr>';
+
+    document.querySelectorAll('[data-grades]').forEach(b =>
+      b.onclick = () => openGrades(b.dataset.grades, b.dataset.label));
+    document.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => {
+      if (!confirm('Remove this enrollment?')) return;
+      try { await api('/enrollments/' + b.dataset.del, { method: 'DELETE' }); toast('Removed'); load(); }
+      catch (err) { toast(errorMessage(err), false); }
+    });
+
+    const ul = document.getElementById('enroll-pages');
+    ul.innerHTML = '';
+    for (let i = 0; i < data.totalPages; i++) {
+      const li = document.createElement('li');
+      li.className = 'page-item' + (i === state.page ? ' active' : '');
+      li.innerHTML = '<a class="page-link" href="#">' + (i + 1) + '</a>';
+      li.onclick = ev => { ev.preventDefault(); state.page = i; load(); };
+      ul.appendChild(li);
+    }
+  }
+
+  async function openGrades(enrollmentId, label) {
+    currentEnrollment = enrollmentId;
+    editingGradeId = null;
+    document.getElementById('grades-title').textContent = 'Grades — ' + label;
+    document.getElementById('grade-form').style.display = hasPerm('grade.create') ? '' : 'none';
+    await refreshGrades();
+    gradesModal.show();
+  }
+
+  async function refreshGrades() {
+    const res = await api('/enrollments/' + currentEnrollment + '/grades');
+    document.getElementById('grades-body').innerHTML = res.data.map(g => {
+      let actions = '';
+      if (hasPerm('grade.update')) {
+        actions += '<button class="btn btn-sm btn-outline-primary me-1" data-gedit=\'' + JSON.stringify(g) + '\'>Edit</button>';
+      }
+      if (hasPerm('grade.delete')) {
+        actions += '<button class="btn btn-sm btn-outline-danger" data-gdel="' + g.id + '">Del</button>';
+      }
+      return '<tr><td>' + esc(g.subjectCode) + ' — ' + esc(g.subjectName) + '</td><td>' + esc(g.term) +
+        '</td><td class="fw-semibold">' + g.score + '</td><td class="text-muted small">' + esc(g.gradedBy || '') +
+        '</td><td>' + actions + '</td></tr>';
+    }).join('') || '<tr><td colspan="5" class="text-center text-muted py-3">No grades yet</td></tr>';
+
+    document.querySelectorAll('[data-gedit]').forEach(b => b.onclick = () => {
+      const g = JSON.parse(b.dataset.gedit);
+      editingGradeId = g.id;
+      document.getElementById('grade-subject').value = g.subjectId;
+      document.getElementById('grade-term').value = g.term;
+      document.getElementById('grade-score').value = g.score;
+    });
+    document.querySelectorAll('[data-gdel]').forEach(b => b.onclick = async () => {
+      if (!confirm('Delete this grade?')) return;
+      try { await api('/grades/' + b.dataset.gdel, { method: 'DELETE' }); toast('Deleted'); refreshGrades(); }
+      catch (err) { toast(errorMessage(err), false); }
+    });
+  }
+
+  document.getElementById('btn-enroll').onclick = async () => {
+    try {
+      await api('/enrollments', {
+        method: 'POST',
+        body: JSON.stringify({
+          studentId: Number(document.getElementById('enroll-student').value),
+          classId: Number(document.getElementById('enroll-class').value)
+        })
+      });
+      toast('Enrolled');
+      load();
+    } catch (err) {
+      toast(errorMessage(err), false);
+    }
+  };
+
+  document.getElementById('btn-grade').onclick = async () => {
+    const payload = {
+      enrollmentId: Number(currentEnrollment),
+      subjectId: Number(document.getElementById('grade-subject').value),
+      score: Number(document.getElementById('grade-score').value),
+      term: document.getElementById('grade-term').value
+    };
+    try {
+      if (editingGradeId) {
+        await api('/grades/' + editingGradeId, { method: 'PUT', body: JSON.stringify(payload) });
+      } else {
+        await api('/grades', { method: 'POST', body: JSON.stringify(payload) });
+      }
+      editingGradeId = null;
+      document.getElementById('grade-score').value = '';
+      toast('Grade saved');
+      refreshGrades();
+    } catch (err) {
+      toast(errorMessage(err), false);
+    }
+  };
+
+  document.getElementById('filter-class').onchange = e => {
+    state.classId = e.target.value;
+    state.page = 0;
+    load();
+  };
+
+  (async () => {
+    gradesModal = new bootstrap.Modal(document.getElementById('grades-modal'));
+    try {
+      await loadOptions();
+      await load();
+    } catch (err) {
+      toast(errorMessage(err), false);
+    }
+  })();
+</script>
+</body>
+</html>

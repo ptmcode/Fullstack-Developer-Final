@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Teachers — School Management</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<div id="navbar"></div>
+<div class="container pb-5"><div id="crud"></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/app.js"></script>
+<script src="js/crud.js"></script>
+<script>
+  requireAuth();
+  renderNavbar('teachers.html');
+  initCrud({
+    title: 'Teachers',
+    api: '/teachers',
+    perm: 'teacher',
+    columns: [
+      { key: 'teacherCode', label: 'Code' },
+      { key: 'firstName', label: 'First name' },
+      { key: 'lastName', label: 'Last name' },
+      { key: 'gender', label: 'Gender' },
+      { key: 'specialization', label: 'Specialization' },
+      { key: 'email', label: 'Email' },
+      { key: 'phone', label: 'Phone' }
+    ],
+    fields: [
+      { key: 'teacherCode', label: 'Teacher code', required: true },
+      { key: 'gender', label: 'Gender', type: 'select', options: [
+        { value: 'M', label: 'Male' }, { value: 'F', label: 'Female' }] },
+      { key: 'firstName', label: 'First name', required: true },
+      { key: 'lastName', label: 'Last name', required: true },
+      { key: 'specialization', label: 'Specialization' },
+      { key: 'email', label: 'Email', type: 'email' },
+      { key: 'phone', label: 'Phone' }
+    ]
+  });
+</script>
+</body>
+</html>
