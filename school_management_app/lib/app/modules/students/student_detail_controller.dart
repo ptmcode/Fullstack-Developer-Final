@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 
 import '../../core/network/api_exception.dart';
+import '../../core/services/export_service.dart';
 import '../../core/utils/formatters.dart';
 import '../../core/widgets/app_snackbar.dart';
 import '../../core/widgets/shared_widgets.dart';
@@ -152,6 +153,27 @@ class StudentDetailController extends GetxController {
               ),
         gradeId == null ? 'Grade recorded' : 'Grade updated',
       );
+
+  /// Report-card PDF with profile, enrollments and grades.
+  final exporting = false.obs;
+
+  Future<void> exportTranscript() async {
+    if (exporting.value) return;
+    exporting.value = true;
+    try {
+      final bytes = await ExportService.buildTranscriptPdf(
+        student: student.value,
+        enrollments: enrollmentList,
+        grades: gradeList,
+      );
+      await ExportService.saveAndOpenPdf(
+          bytes, 'report-card-${student.value.studentCode}.pdf');
+    } catch (e) {
+      AppSnackbar.error('Export failed: $e');
+    } finally {
+      exporting.value = false;
+    }
+  }
 
   Future<void> deleteGrade(GradeModel grade) async {
     final confirmed = await showConfirmDialog(

@@ -25,6 +25,22 @@ class StudentsView extends GetView<StudentsController> {
       emptyMessage: 'No students found',
       emptyIcon: Icons.school_outlined,
       headerActions: [
+        Obx(
+          () => IconButton(
+            tooltip: 'Export PDF',
+            onPressed: controller.exporting.value ? null : controller.exportPdf,
+            icon: const Icon(Icons.picture_as_pdf_outlined),
+          ),
+        ),
+        Obx(
+          () => IconButton(
+            tooltip: 'Export Excel',
+            onPressed:
+                controller.exporting.value ? null : controller.exportExcel,
+            icon: const Icon(Icons.table_view_outlined),
+          ),
+        ),
+        const SizedBox(width: 4),
         if (session.hasPermission(AppPermissions.studentCreate))
           FilledButton.icon(
             onPressed: () => StudentFormDialog.show(),

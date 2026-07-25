@@ -110,6 +110,21 @@ Bottom-bar **Profile**: account details, roles, permission chips and
 **Change password** (requires the current one; afterwards all sessions are
 signed out and you log in with the new password).
 
+### 3.10 Export, QR badges & push notifications
+- **Students → PDF / Excel icons** (next to *New student*): export the
+  current list — respects the active search filter — via the share sheet.
+- **Student detail → PDF icon**: report-card PDF (profile, enrollments,
+  grades with letters and average). **QR icon**: the student's ID badge —
+  scannable JSON payload with code, name and email.
+- **Profile → My QR badge**: your own badge.
+- **Profile → Push notifications card**: shows Connected/Unavailable, the
+  device FCM token (copy button) and the subscribed topic. To demo: copy
+  the token → Firebase console → Messaging → *Send test message* → paste
+  token. Or send a campaign to topic `announcements`. Foreground messages
+  appear as in-app banners. Note: iOS requires uploading an APNs key in
+  Firebase project settings and a real device; the Android emulator with
+  Play services works immediately.
+
 ---
 
 ## 4. Teacher (`teacher1`) — enrollments & grades

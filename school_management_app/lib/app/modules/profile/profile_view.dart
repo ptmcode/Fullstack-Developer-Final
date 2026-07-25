@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
+import '../../core/services/push_notification_service.dart';
 import '../../core/utils/formatters.dart';
 import '../../core/utils/validators.dart';
+import '../../core/widgets/app_snackbar.dart';
+import '../../core/widgets/qr_badge_dialog.dart';
 import '../../core/widgets/shared_widgets.dart';
 import 'profile_controller.dart';
 
@@ -48,8 +52,106 @@ class ProfileView extends GetView<ProfileController> {
                 );
               },
             ),
+            const SizedBox(height: 16),
+            const _NotificationsCard(),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Push notification status + the device FCM token (copyable, so a test
+/// message can be sent from the Firebase console).
+class _NotificationsCard extends StatelessWidget {
+  const _NotificationsCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final push = Get.find<PushNotificationService>();
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Obx(() {
+          final token = push.fcmToken.value;
+          final reason = push.unavailableReason.value;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text('Push notifications',
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w700)),
+                  ),
+                  token != null
+                      ? const StatusChip(
+                          label: 'Connected',
+                          color: Color(0xFF16A34A),
+                          icon: Icons.notifications_active_rounded)
+                      : const StatusChip(
+                          label: 'Unavailable',
+                          color: Color(0xFFD97706),
+                          icon: Icons.notifications_off_rounded),
+                ],
+              ),
+              const SizedBox(height: 8),
+              if (token != null) ...[
+                Text(
+                  'Subscribed to the "${PushNotificationService.topic}" topic. '
+                  'Send a test from Firebase console → Messaging, targeting the '
+                  'topic or this device token:',
+                  style: TextStyle(
+                      color: scheme.onSurfaceVariant, fontSize: 13, height: 1.4),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: scheme.primary.withValues(alpha: .06),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          token,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              fontSize: 11, fontFamily: 'monospace'),
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: 'Copy token',
+                        icon: const Icon(Icons.copy_rounded, size: 18),
+                        onPressed: () async {
+                          await Clipboard.setData(ClipboardData(text: token));
+                          AppSnackbar.success('FCM token copied');
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                if (push.lastMessage.value != null) ...[
+                  const SizedBox(height: 8),
+                  Text('Last message: ${push.lastMessage.value}',
+                      style: TextStyle(
+                          fontSize: 12, color: scheme.onSurfaceVariant)),
+                ],
+              ] else
+                Text(
+                  reason ?? 'Waiting for permission…',
+                  style: TextStyle(
+                      color: scheme.onSurfaceVariant, fontSize: 13, height: 1.4),
+                ),
+            ],
+          );
+        }),
       ),
     );
   }
@@ -137,6 +239,25 @@ class _InfoCard extends StatelessWidget {
                 children: [
                   for (final p in user.permissions) StatusChip(label: p),
                 ],
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () => QrBadgeDialog.show(
+                    title: user.fullName,
+                    subtitle: '@${user.username}',
+                    data: {
+                      'type': 'user',
+                      'username': user.username,
+                      'name': user.fullName,
+                      'email': user.email,
+                      'roles': user.roles,
+                    },
+                  ),
+                  icon: const Icon(Icons.qr_code_rounded),
+                  label: const Text('My QR badge'),
+                ),
               ),
             ],
           );

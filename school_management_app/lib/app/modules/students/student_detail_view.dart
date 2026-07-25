@@ -5,6 +5,7 @@ import '../../core/constants/app_permissions.dart';
 import '../../core/services/session_service.dart';
 import '../../core/utils/formatters.dart';
 import '../../core/utils/validators.dart';
+import '../../core/widgets/qr_badge_dialog.dart';
 import '../../core/widgets/shared_widgets.dart';
 import '../../data/models/enrollment_model.dart';
 import '../../data/models/grade_model.dart';
@@ -17,7 +18,38 @@ class StudentDetailView extends GetView<StudentDetailController> {
   Widget build(BuildContext context) {
     final session = Get.find<SessionService>();
     return Scaffold(
-      appBar: AppBar(title: Obx(() => Text(controller.student.value.fullName))),
+      appBar: AppBar(
+        title: Obx(() => Text(controller.student.value.fullName)),
+        actions: [
+          IconButton(
+            tooltip: 'Student QR badge',
+            onPressed: () {
+              final s = controller.student.value;
+              QrBadgeDialog.show(
+                title: s.fullName,
+                subtitle: s.studentCode,
+                data: {
+                  'type': 'student',
+                  'code': s.studentCode,
+                  'name': s.fullName,
+                  'email': s.email,
+                },
+              );
+            },
+            icon: const Icon(Icons.qr_code_rounded),
+          ),
+          Obx(
+            () => IconButton(
+              tooltip: 'Export report card (PDF)',
+              onPressed: controller.exporting.value
+                  ? null
+                  : controller.exportTranscript,
+              icon: const Icon(Icons.picture_as_pdf_outlined),
+            ),
+          ),
+          const SizedBox(width: 4),
+        ],
+      ),
       body: Obx(() {
         if (controller.loading.value && controller.enrollmentList.isEmpty) {
           return const Center(child: CircularProgressIndicator());

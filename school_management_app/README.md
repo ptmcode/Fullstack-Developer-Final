@@ -63,6 +63,14 @@ flutter test           # unit + widget tests (models, ApiClient refresh flow, wi
 - **Users & Roles** — user CRUD, role assignment, role-permission matrix editor.
 - **Audit logs** — filters for username, action, entity type and date range.
 - **Theming** — light / dark Material 3 theme, persisted with GetStorage.
+- **PDF / Excel export** — students list as PDF or XLSX (share sheet), and a
+  per-student report-card PDF with enrollments, grades and average.
+- **QR badges** — ID-card dialog with a JSON QR payload for every student
+  (detail screen) and for the signed-in user (profile).
+- **Push notifications** — Firebase Cloud Messaging: permission request,
+  device token (copyable from Profile for console test sends), automatic
+  subscription to the `announcements` topic, foreground banner + background
+  handler. iOS needs an APNs key in Firebase; Android works out of the box.
 
 ## Project structure (Clean Architecture)
 
