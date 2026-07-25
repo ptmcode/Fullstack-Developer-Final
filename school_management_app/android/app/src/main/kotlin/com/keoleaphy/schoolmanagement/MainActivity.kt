@@ -1,4 +1,4 @@
-package com.dinsarenkh.simple_state_management_app
+package com.keoleaphy.schoolmanagement
 
 import io.flutter.embedding.android.FlutterActivity
 

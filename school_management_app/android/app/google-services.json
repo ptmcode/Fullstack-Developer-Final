@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "247311564576",
+    "project_id": "bbu-school-management-system",
+    "storage_bucket": "bbu-school-management-system.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:247311564576:android:253e6addf59d3954da2145",
+        "android_client_info": {
+          "package_name": "com.dinsarenkh.simple_state_management_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCNO46RRxq3WrtTLqzhH9Dnw8CaQte8sKU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:247311564576:android:54d5d0a09711d535da2145",
+        "android_client_info": {
+          "package_name": "com.keoleaphy.schoolmanagement"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCNO46RRxq3WrtTLqzhH9Dnw8CaQte8sKU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
