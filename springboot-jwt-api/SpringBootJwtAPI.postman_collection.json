@@ -1,0 +1,801 @@
+{
+  "info": {
+    "name": "SpringBoot JWT API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Complete API collection for SpringBoot JWT API — base URL: http://localhost:30033"
+  },
+  "variable": [
+    { "key": "baseUrl",      "value": "http://localhost:30033" },
+    { "key": "accessToken",  "value": "" },
+    { "key": "refreshToken", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.accessToken) {",
+                  "  pm.collectionVariables.set('accessToken',  json.data.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', json.data.refreshToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/oauth/token",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"0000000001\",\n  \"password\": \"Admin@1234\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/oauth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"john_doe\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john@example.com\",\n  \"phoneNumber\": \"0123456789\",\n  \"password\": \"Password@123\",\n  \"confirmPassword\": \"Password@123\",\n  \"role\": \"USER\",\n  \"profile\": \"\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.accessToken) {",
+                  "  pm.collectionVariables.set('accessToken', json.data.accessToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/oauth/refresh",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/oauth/logout",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Forgot Password - Send OTP",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/oauth/forgot/password",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"0000000001\",\n  \"deviceId\": \"device-abc-123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Forgot Password - Verify OTP",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/oauth/forgot/password/verify",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"0000000001\",\n  \"deviceId\": \"device-abc-123\",\n  \"otp\": \"123456\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Forgot Password - Set New Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/oauth/forgot/password/finish",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"0000000001\",\n  \"otp\": \"123456\",\n  \"oldPassword\": \"Admin@1234\",\n  \"password\": \"NewPass@123\",\n  \"confirmPassword\": \"NewPass@123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Upload Profile Image",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/oauth/image/upload",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "File", "type": "file", "src": "" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "User (Self)",
+      "item": [
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/app/user/update",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 1,\n  \"username\": \"admin\",\n  \"firstName\": \"System\",\n  \"lastName\": \"Admin\",\n  \"email\": \"admin@example.com\",\n  \"phoneNumber\": \"0000000001\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/app/user/change/password",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"Admin@1234\",\n  \"password\": \"NewPass@123\",\n  \"confirmPassword\": \"NewPass@123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/app/user/1",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Public - Post",
+      "item": [
+        {
+          "name": "List Posts",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/public/post?page=0&size=10&status=ACT",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "public", "post"],
+              "query": [
+                { "key": "page",       "value": "0" },
+                { "key": "size",       "value": "10" },
+                { "key": "status",     "value": "ACT" },
+                { "key": "categoryId", "value": "1",    "disabled": true },
+                { "key": "userId",     "value": "1",    "disabled": true },
+                { "key": "keyword",    "value": "tech", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Post by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/public/post/1"
+          }
+        },
+        {
+          "name": "Like a Post",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/public/post/1/like"
+          }
+        },
+        {
+          "name": "Dislike a Post",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/public/post/1/dislike"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Public - Post Category",
+      "item": [
+        {
+          "name": "List Post Categories",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/public/post-category?status=ACT",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "public", "post-category"],
+              "query": [{ "key": "status", "value": "ACT" }]
+            }
+          }
+        },
+        {
+          "name": "Get Post Category by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/public/post-category/1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Post (Auth)",
+      "item": [
+        {
+          "name": "List Posts",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/app/post?page=0&size=10&status=ACT",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "app", "post"],
+              "query": [
+                { "key": "page",       "value": "0" },
+                { "key": "size",       "value": "10" },
+                { "key": "status",     "value": "ACT" },
+                { "key": "categoryId", "value": "1",    "disabled": true },
+                { "key": "userId",     "value": "1",    "disabled": true },
+                { "key": "keyword",    "value": "tech", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Post by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/api/app/post/1"
+          }
+        },
+        {
+          "name": "Create Post",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/app/post",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"My First Post\",\n  \"description\": \"A short summary of the post\",\n  \"body\": \"Full post content goes here.\",\n  \"image\": \"https://picsum.photos/seed/post/800/600\",\n  \"categoryId\": 1,\n  \"tags\": [\"technology\", \"spring\"]\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Post",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/app/post/1",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Title\",\n  \"description\": \"Updated description\",\n  \"image\": \"https://picsum.photos/seed/updated/800/600\",\n  \"categoryId\": 2\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Post",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/api/app/post/1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Post Category (Auth)",
+      "item": [
+        {
+          "name": "List Post Categories",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/app/post/category?status=ACT",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "app", "post", "category"],
+              "query": [{ "key": "status", "value": "ACT" }]
+            }
+          }
+        },
+        {
+          "name": "Get Post Category by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/api/app/post/category/1"
+          }
+        },
+        {
+          "name": "Create Post Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/app/post/category",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Science & Tech\",\n  \"imageUrl\": \"https://picsum.photos/seed/sci/400/300\",\n  \"status\": \"ACT\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Post Category",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/app/post/category/1",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Category\",\n  \"imageUrl\": \"https://picsum.photos/seed/upd/400/300\",\n  \"status\": \"ACT\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Post Category",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/api/app/post/category/1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Public - Hotel",
+      "item": [
+        {
+          "name": "List Hotels",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/public/hotels/list",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"ALL\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List Hotels by Category",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/public/hotels/list",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"CATEGORY\",\n  \"categoryHotelId\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Hotel by ID",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/public/hotels/getById/1",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          }
+        },
+        {
+          "name": "List Hotel Categories",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/public/hotels/category/list",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin - Hotel",
+      "item": [
+        {
+          "name": "List Hotels",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/app/admin/hotel/list",
+            "body": { "mode": "raw", "raw": "{}" }
+          }
+        },
+        {
+          "name": "Get Hotel by ID",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/app/admin/hotel/1",
+            "body": { "mode": "raw", "raw": "{}" }
+          }
+        },
+        {
+          "name": "Create Hotel",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/app/admin/hotel/create",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"name\": \"New Hotel\",\n  \"description\": \"A great hotel\",\n  \"imageUrl\": \"https://picsum.photos/seed/hotel/400/300\",\n  \"phone\": \"0112233445\",\n  \"email\": \"info@hotel.com\",\n  \"categoryHotelId\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Hotel",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/app/admin/hotel/update",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 1,\n  \"userId\": 1,\n  \"name\": \"Updated Hotel\",\n  \"description\": \"Updated description\",\n  \"imageUrl\": \"https://picsum.photos/seed/hotel2/400/300\",\n  \"phone\": \"0112233446\",\n  \"email\": \"updated@hotel.com\",\n  \"categoryHotelId\": 2\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Hotel",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/app/admin/hotel/delete",
+            "body": { "mode": "raw", "raw": "{\n  \"id\": 1\n}" }
+          }
+        },
+        {
+          "name": "List Hotel Categories",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/app/admin/hotel/category/list",
+            "body": { "mode": "raw", "raw": "{}" }
+          }
+        },
+        {
+          "name": "Get Hotel Category by ID",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/app/admin/hotel/category/1",
+            "body": { "mode": "raw", "raw": "{}" }
+          }
+        },
+        {
+          "name": "Create Hotel Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/app/admin/hotel/category/create",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Boutique\",\n  \"status\": \"ACT\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Hotel Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/app/admin/hotel/category/update",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 1,\n  \"name\": \"Updated Category\",\n  \"status\": \"ACT\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Hotel Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/app/admin/hotel/category/delete",
+            "body": { "mode": "raw", "raw": "{\n  \"id\": 1\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Product",
+      "item": [
+        {
+          "name": "List Product Categories",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/app/product/category/list",
+            "body": { "mode": "raw", "raw": "{}" }
+          }
+        },
+        {
+          "name": "Get Product Category by ID",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/app/product/category/1",
+            "body": { "mode": "raw", "raw": "{}" }
+          }
+        },
+        {
+          "name": "Create Product Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/app/product/category/create",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Accessories\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Product Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/app/product/category/update",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 1,\n  \"name\": \"Electronics & Gadgets\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Product Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/app/product/category/delete",
+            "body": { "mode": "raw", "raw": "{\n  \"id\": 1\n}" }
+          }
+        },
+        {
+          "name": "List Products",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/app/product/list",
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"ALL\"\n}" }
+          }
+        },
+        {
+          "name": "Get Product by ID",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/app/product/1",
+            "body": { "mode": "raw", "raw": "{}" }
+          }
+        },
+        {
+          "name": "Create Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/app/product/create",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Bluetooth Speaker\",\n  \"productCode\": \"ELEC-010\",\n  \"category\": { \"id\": 1 },\n  \"price\": 49.99,\n  \"cost\": 22.00,\n  \"stockQuantity\": 100,\n  \"description\": \"Portable wireless speaker\",\n  \"status\": \"ACT\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/app/product/update",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 1,\n  \"name\": \"Wireless Headphones Pro\",\n  \"productCode\": \"ELEC-001\",\n  \"category\": { \"id\": 1 },\n  \"price\": 89.99,\n  \"cost\": 48.00,\n  \"stockQuantity\": 140,\n  \"description\": \"Upgraded noise-cancelling headphones\",\n  \"status\": \"ACT\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/app/product/delete",
+            "body": { "mode": "raw", "raw": "{\n  \"id\": 1\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin - User Management",
+      "item": [
+        {
+          "name": "List Users",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/app/admin/user/list",
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"ALL\"\n}" }
+          }
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/app/admin/user/1",
+            "body": { "mode": "raw", "raw": "{}" }
+          }
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/app/admin/user/create",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"new_staff\",\n  \"firstName\": \"New\",\n  \"lastName\": \"Staff\",\n  \"email\": \"staff@example.com\",\n  \"phoneNumber\": \"0987654321\",\n  \"password\": \"Password@123\",\n  \"confirmPassword\": \"Password@123\",\n  \"role\": \"USER\",\n  \"profile\": \"\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/app/admin/user/update",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 2,\n  \"username\": \"new_staff\",\n  \"firstName\": \"Updated\",\n  \"lastName\": \"Staff\",\n  \"email\": \"staff@example.com\",\n  \"phoneNumber\": \"0987654321\",\n  \"password\": \"Password@123\",\n  \"confirmPassword\": \"Password@123\",\n  \"role\": \"USER\",\n  \"status\": \"ACT\",\n  \"profile\": \"\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/app/admin/user/delete",
+            "body": { "mode": "raw", "raw": "{\n  \"id\": 2\n}" }
+          }
+        }
+      ]
+    }
+  ]
+}

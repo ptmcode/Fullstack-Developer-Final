@@ -1,0 +1,13 @@
+version: '3.9'
+services:
+  postgres:
+    image: postgres:14-alpine
+    restart: unless-stopped
+    ports:
+      - 5466:5432
+#    volumes:
+#      - /Users/dinsaren/Documents/Teaching/BBU/Flutter/kps/2025/spring/Untitled/springboot-jwt-api/postgres/data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=1234
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=postgres

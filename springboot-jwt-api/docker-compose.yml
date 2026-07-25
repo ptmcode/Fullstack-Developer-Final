@@ -1,0 +1,10 @@
+version: '3'
+services:
+  web-content-api:
+    container_name: web-content-management-api
+    build: .
+    ports:
+      - "30033:30033"
+    restart: always
+    volumes:
+      - /opt/projects/teach/upload/images:/opt/projects/teach/upload/images

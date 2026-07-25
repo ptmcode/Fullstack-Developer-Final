@@ -1,0 +1,68 @@
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/web_content_management_db
+    username: postgres
+    password: 1234
+
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 0
+
+  otp:
+    sms:
+      expire: 10
+      template: "This is one time security code. Don't tell anyone."
+      enbaled: Y
+
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+
+  upload:
+    server:
+      path: /opt/projects/teach/upload/images/
+    client:
+      path: /image/**
+
+server:
+  port: 30033
+
+post:
+  free:
+    app:
+      jwtSecret: ebe8910a-08c0-11ed-861d-0242ac120002
+      jwtExpirationMs: 300000
+      jwtRefreshExpirationMs: 86400000
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    display-request-duration: true
+    try-it-out-enabled: true
+  api-docs:
+    path: /v3/api-docs
+  packages-to-scan: com.dinsaren.springbootjwtapi.controllers
+  paths-to-match: /**
+
+api:
+  response-codes:
+    ok:
+      desc: OK
+    badRequest:
+      desc: BAD_REQUEST
+    notFound:
+      desc: NOT_FOUND
