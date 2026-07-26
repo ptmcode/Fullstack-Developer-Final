@@ -94,3 +94,21 @@ the Flutter app calls it. Base URL: `http://localhost:30033/api/v1`.
 | Endpoint | Method | Screen / trigger |
 |---|---|---|
 | `/audit-logs?username&action&entityType&from&to&page…` | GET | Audit Logs screen (all filters) |
+
+## Devices & Notifications
+See `springboot-jwt-api/docs/06-push-notifications.md` for backend setup.
+
+| Endpoint | Method | Screen / trigger |
+|---|---|---|
+| `/devices` | POST | `SessionService.setUser` (after every sign-in) + `FirebaseMessaging.onTokenRefresh` |
+| `/devices` | GET | *(repository method available; no screen — logout unregisters server-side)* |
+| `/devices?token=…` | DELETE | *(repository method available)* |
+| `/notifications?unreadOnly&page…` | GET | Notifications screen (All / Unread filter) |
+| `/notifications/unread-count` | GET | App bar bell badge + Unread chip |
+| `/notifications/{id}/read` | PUT | Tap a notification row |
+| `/notifications/read-all` | PUT | Notifications → Mark all read |
+| `/notifications/send` | POST | Notifications → Announce (permission `notification.send`) |
+
+Client prerequisites (already configured): `firebase_core`, `firebase_messaging`,
+`flutter_local_notifications`, `lib/firebase_options.dart`,
+`android/app/google-services.json`, `ios/Runner/GoogleService-Info.plist`.

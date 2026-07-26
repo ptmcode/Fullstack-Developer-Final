@@ -59,8 +59,9 @@ class ApiClient extends GetxService {
   Future<ApiEnvelope> put(String path, {Object? body, bool auth = true}) =>
       _request('PUT', path, body: body, auth: auth);
 
-  Future<ApiEnvelope> delete(String path, {bool auth = true}) =>
-      _request('DELETE', path, auth: auth);
+  Future<ApiEnvelope> delete(String path,
+          {Map<String, String>? query, bool auth = true}) =>
+      _request('DELETE', path, query: query, auth: auth);
 
   // --- Core pipeline --------------------------------------------------------
 

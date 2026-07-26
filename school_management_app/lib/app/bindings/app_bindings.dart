@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 
 import '../core/network/api_client.dart';
 import '../core/services/preferences_service.dart';
+import '../core/services/push_notification_service.dart';
 import '../core/services/session_service.dart';
 import '../core/services/token_storage_service.dart';
 import '../data/repositories/audit_repository.dart';
@@ -10,6 +11,7 @@ import '../data/repositories/class_repository.dart';
 import '../data/repositories/dashboard_repository.dart';
 import '../data/repositories/enrollment_repository.dart';
 import '../data/repositories/grade_repository.dart';
+import '../data/repositories/notification_repository.dart';
 import '../data/repositories/role_repository.dart';
 import '../data/repositories/student_repository.dart';
 import '../data/repositories/subject_repository.dart';
@@ -20,6 +22,7 @@ import '../modules/auth/auth_controller.dart';
 import '../modules/classes/classes_controller.dart';
 import '../modules/dashboard/dashboard_controller.dart';
 import '../modules/enrollments/enrollments_controller.dart';
+import '../modules/notifications/notifications_controller.dart';
 import '../modules/profile/profile_controller.dart';
 import '../modules/roles/roles_controller.dart';
 import '../modules/shell/shell_controller.dart';
@@ -49,6 +52,7 @@ class InitialBinding extends Bindings {
     Get.lazyPut(() => GradeRepository(api: api), fenix: true);
     Get.lazyPut(() => DashboardRepository(api: api), fenix: true);
     Get.lazyPut(() => AuditRepository(api: api), fenix: true);
+    Get.lazyPut(() => NotificationRepository(api: api), fenix: true);
   }
 }
 
@@ -110,6 +114,10 @@ class ShellBinding extends Bindings {
     Get.lazyPut(() => ProfileController(
           users: Get.find<UserRepository>(),
           session: Get.find<SessionService>(),
+        ));
+    Get.lazyPut(() => NotificationsController(
+          notifications: Get.find<NotificationRepository>(),
+          push: Get.find<PushNotificationService>(),
         ));
   }
 }

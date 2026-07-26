@@ -22,6 +22,13 @@ class ExportService {
 
   static const _violet = PdfColor.fromInt(0xFF8B7CF6);
 
+  /// The built-in PDF fonts (Helvetica) can't draw the typographic dashes and
+  /// bullets used in the UI, which would leave blank cells in the export.
+  static String _pdfSafe(String value) => value
+      .replaceAll('—', '-')
+      .replaceAll('–', '-')
+      .replaceAll('•', '*');
+
   // --- Builders (pure, testable) -----------------------------------------
 
   /// A4 landscape table of all students.
@@ -44,12 +51,12 @@ class ExportService {
                 [
                   s.studentCode,
                   s.fullName,
-                  Formatters.gender(s.gender),
-                  Formatters.date(s.dateOfBirth),
-                  s.email ?? '—',
-                  s.phone ?? '—',
-                  s.address ?? '—',
-                  s.status ?? '—',
+                  _pdfSafe(Formatters.gender(s.gender)),
+                  _pdfSafe(Formatters.date(s.dateOfBirth)),
+                  s.email ?? '-',
+                  s.phone ?? '-',
+                  s.address ?? '-',
+                  s.status ?? '-',
                 ],
             ],
             headerStyle: pw.TextStyle(
@@ -117,12 +124,12 @@ class ExportService {
                 pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.end,
                   children: [
-                    pw.Text('Gender: ${Formatters.gender(student.gender)}',
+                    pw.Text('Gender: ${_pdfSafe(Formatters.gender(student.gender))}',
                         style: const pw.TextStyle(fontSize: 10)),
                     pw.Text(
-                        'Date of birth: ${Formatters.date(student.dateOfBirth)}',
+                        'Date of birth: ${_pdfSafe(Formatters.date(student.dateOfBirth))}',
                         style: const pw.TextStyle(fontSize: 10)),
-                    pw.Text('Email: ${student.email ?? '—'}',
+                    pw.Text('Email: ${student.email ?? '-'}',
                         style: const pw.TextStyle(fontSize: 10)),
                   ],
                 ),
@@ -143,10 +150,10 @@ class ExportService {
               data: [
                 for (final e in enrollments)
                   [
-                    e.className ?? '—',
-                    e.classCode ?? '—',
-                    Formatters.dateTime(e.enrolledAt),
-                    e.status ?? '—',
+                    e.className ?? '-',
+                    e.classCode ?? '-',
+                    _pdfSafe(Formatters.dateTime(e.enrolledAt)),
+                    e.status ?? '-',
                   ],
               ],
               headerStyle: pw.TextStyle(
@@ -170,12 +177,12 @@ class ExportService {
               data: [
                 for (final g in grades)
                   [
-                    g.subjectName ?? '—',
-                    g.subjectCode ?? '—',
+                    g.subjectName ?? '-',
+                    g.subjectCode ?? '-',
                     Formatters.term(g.term),
                     g.score.toStringAsFixed(1),
                     g.letter,
-                    g.gradedBy ?? '—',
+                    g.gradedBy ?? '-',
                   ],
               ],
               headerStyle: pw.TextStyle(

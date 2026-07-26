@@ -48,4 +48,7 @@ class AppPermissions {
   static const roleDelete = 'role.delete';
 
   static const auditRead = 'audit.read';
+
+  static const notificationRead = 'notification.read';
+  static const notificationSend = 'notification.send';
 }

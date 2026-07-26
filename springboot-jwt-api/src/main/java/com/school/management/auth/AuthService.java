@@ -9,6 +9,7 @@ import com.school.management.auth.dto.AuthDtos.RefreshTokenResponse;
 import com.school.management.auth.dto.AuthDtos.ResetPasswordRequest;
 import com.school.management.common.constant.Status;
 import com.school.management.common.exception.AppException;
+import com.school.management.notification.PushNotificationService;
 import com.school.management.security.jwt.JwtUtils;
 import com.school.management.security.service.UserDetailsImpl;
 import com.school.management.user.User;
@@ -41,6 +42,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final MailService mailService;
     private final AuditLogService auditLogService;
+    private final PushNotificationService pushNotificationService;
 
     @Value("${app.jwt.refreshExpirationMs}")
     private long refreshExpirationMs;
@@ -90,6 +92,8 @@ public class AuthService {
     @Transactional
     public void logout(UserDetailsImpl principal) {
         refreshTokenRepository.deleteByUserId(principal.getId());
+        // a signed-out device must stop receiving pushes
+        pushNotificationService.unregisterAllDevices(principal.getId());
         auditLogService.record(principal.getId(), principal.getUsername(), "LOGOUT", "AUTH", null, "Logout");
     }
 

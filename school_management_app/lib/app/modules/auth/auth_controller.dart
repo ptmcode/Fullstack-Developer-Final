@@ -1,4 +1,3 @@
-import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 
 import '../../core/network/api_exception.dart';
@@ -9,6 +8,12 @@ import '../../data/repositories/auth_repository.dart';
 import '../../routes/app_routes.dart';
 
 /// Drives the login, forgot-password and reset-password screens.
+///
+/// Deliberately holds **no** `TextEditingController`s: login, forgot and
+/// reset share one binding, so popping a sub-route would dispose this
+/// controller while the login screen below is still mounted — its fields
+/// would then throw "used after being disposed" on the next tap. Text state
+/// therefore lives in the widgets; this controller only takes values in.
 class AuthController extends GetxController {
   AuthController({
     required AuthRepository auth,
@@ -22,28 +27,29 @@ class AuthController extends GetxController {
   final SessionService _session;
   final PreferencesService _preferences;
 
+  /// Prefills the login field with the last signed-in username.
+  String? get rememberedUsername => _preferences.rememberedUsername;
+
   // --- Login ----------------------------------------------------------------
-  final loginFormKey = GlobalKey<FormState>();
-  late final usernameController =
-      TextEditingController(text: _preferences.rememberedUsername);
-  final passwordController = TextEditingController();
   final obscurePassword = true.obs;
   final rememberMe = true.obs;
   final loggingIn = false.obs;
 
-  Future<void> login() async {
-    if (!(loginFormKey.currentState?.validate() ?? false)) return;
+  Future<void> login({
+    required String username,
+    required String password,
+  }) async {
+    if (loggingIn.value) return;
     loggingIn.value = true;
     try {
       final sessionData = await _auth.login(
-        username: usernameController.text.trim(),
-        password: passwordController.text,
+        username: username,
+        password: password,
       );
       await _preferences.setRememberedUsername(
-        rememberMe.value ? usernameController.text.trim() : null,
+        rememberMe.value ? username : null,
       );
       await _session.setUser(sessionData.user);
-      passwordController.clear();
       Get.offAllNamed(AppRoutes.shell);
     } on ApiException catch (e) {
       AppSnackbar.error(e.displayMessage);
@@ -55,16 +61,13 @@ class AuthController extends GetxController {
   }
 
   // --- Forgot password --------------------------------------------------------
-  final forgotFormKey = GlobalKey<FormState>();
-  final forgotEmailController = TextEditingController();
   final sendingReset = false.obs;
 
-  Future<void> requestPasswordReset() async {
-    if (!(forgotFormKey.currentState?.validate() ?? false)) return;
+  Future<void> requestPasswordReset(String email) async {
+    if (sendingReset.value) return;
     sendingReset.value = true;
     try {
-      final message =
-          await _auth.forgotPassword(forgotEmailController.text.trim());
+      final message = await _auth.forgotPassword(email);
       AppSnackbar.success(message);
       Get.toNamed(AppRoutes.resetPassword);
     } on ApiException catch (e) {
@@ -75,41 +78,26 @@ class AuthController extends GetxController {
   }
 
   // --- Reset password ----------------------------------------------------------
-  final resetFormKey = GlobalKey<FormState>();
-  final resetTokenController = TextEditingController();
-  final newPasswordController = TextEditingController();
-  final confirmPasswordController = TextEditingController();
   final obscureNewPassword = true.obs;
   final resetting = false.obs;
 
-  Future<void> resetPassword() async {
-    if (!(resetFormKey.currentState?.validate() ?? false)) return;
+  Future<void> resetPassword({
+    required String token,
+    required String newPassword,
+  }) async {
+    if (resetting.value) return;
     resetting.value = true;
     try {
       final message = await _auth.resetPassword(
-        token: resetTokenController.text.trim(),
-        newPassword: newPasswordController.text,
+        token: token,
+        newPassword: newPassword,
       );
       AppSnackbar.success(message);
-      resetTokenController.clear();
-      newPasswordController.clear();
-      confirmPasswordController.clear();
       Get.offAllNamed(AppRoutes.login);
     } on ApiException catch (e) {
       AppSnackbar.error(e.displayMessage);
     } finally {
       resetting.value = false;
     }
-  }
-
-  @override
-  void onClose() {
-    usernameController.dispose();
-    passwordController.dispose();
-    forgotEmailController.dispose();
-    resetTokenController.dispose();
-    newPasswordController.dispose();
-    confirmPasswordController.dispose();
-    super.onClose();
   }
 }

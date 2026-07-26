@@ -46,4 +46,8 @@ public class Student extends BaseEntity {
 
     @Column(nullable = false, length = 3)
     private String status;
+
+    /** Optional link to a login account, so the student can receive their own notifications. */
+    @Column(name = "user_id")
+    private Integer userId;
 }

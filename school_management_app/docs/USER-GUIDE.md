@@ -110,7 +110,23 @@ Bottom-bar **Profile**: account details, roles, permission chips and
 **Change password** (requires the current one; afterwards all sessions are
 signed out and you log in with the new password).
 
-### 3.10 Export, QR badges & push notifications
+### 3.10 Notifications
+- The **bell** in the app bar shows a red badge with the unread count; tap it
+  (or the sidebar entry) to open the inbox.
+- **All / Unread** chips filter the list; tapping a row marks it read;
+  **Mark all read** clears the badge.
+- Notifications are created automatically by the backend when a grade is
+  recorded/updated or a student is enrolled — the student receives it.
+- **Announce** (admins & teachers, permission `notification.send`): compose a
+  title + message, then choose the audience — **By role** (every active user
+  of ROLE_STUDENT / ROLE_TEACHER / ROLE_ADMIN) or **Specific** user ids
+  (comma-separated, ids visible on the Users screen).
+- The confirmation tells you what actually happened, e.g. *"Sent to 2
+  recipients on 1 device"*, or *"…(push delivery is in dry-run mode)"* when
+  the backend has no Firebase service-account key — the inbox entries are
+  still created either way.
+
+### 3.11 Export, QR badges & device push
 - **Students → PDF / Excel icons** (next to *New student*): export the
   current list — respects the active search filter — via the share sheet.
 - **Student detail → PDF icon**: report-card PDF (profile, enrollments,
@@ -141,7 +157,10 @@ You can:
 4. **Manage grades**: student detail → *Record grade*, edit ✏️, delete 🗑.
    This is the teacher's main daily flow:
    `Students → tap student → Record grade → pick class & subject → score → term → Record`.
-5. Change your own password in Profile.
+   Recording a grade automatically notifies that student.
+5. **Send announcements**: Notifications → *Announce* → by role or to
+   specific users.
+6. Change your own password in Profile.
 
 If you try something outside the role (even by hand-crafting a request),
 the server answers 403 and the app shows the error.
@@ -156,7 +175,10 @@ You can:
 2. Browse **subjects** and **classes** (tapping a class shows its roster,
    read-only).
 3. Browse **enrollments** and tap one to **view grades**.
-4. View **My Profile** and change your own password.
+4. Read **Notifications** — new grades, new enrollments and announcements
+   arrive here automatically (bell badge shows the unread count). Students
+   can read and mark as read, but cannot send.
+5. View **My Profile** and change your own password.
 
 Tiles like *Students* or *Users* show "not available for your role" when
 tapped; there are no create/edit/delete buttons anywhere.

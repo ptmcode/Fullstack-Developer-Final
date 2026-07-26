@@ -89,6 +89,7 @@ public class WebSecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
+                                "/v3/api-docs.yaml",
                                 "/webjars/**",
                                 // static admin UI (data is still protected by the API)
                                 "/",

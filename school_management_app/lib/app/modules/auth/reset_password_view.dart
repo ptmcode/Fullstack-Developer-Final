@@ -4,8 +4,35 @@ import 'package:get/get.dart';
 import '../../core/utils/validators.dart';
 import 'auth_controller.dart';
 
-class ResetPasswordView extends GetView<AuthController> {
+class ResetPasswordView extends StatefulWidget {
   const ResetPasswordView({super.key});
+
+  @override
+  State<ResetPasswordView> createState() => _ResetPasswordViewState();
+}
+
+class _ResetPasswordViewState extends State<ResetPasswordView> {
+  final _formKey = GlobalKey<FormState>();
+  final _token = TextEditingController();
+  final _newPassword = TextEditingController();
+  final _confirmPassword = TextEditingController();
+  late final AuthController controller = Get.find<AuthController>();
+
+  @override
+  void dispose() {
+    _token.dispose();
+    _newPassword.dispose();
+    _confirmPassword.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    controller.resetPassword(
+      token: _token.text.trim(),
+      newPassword: _newPassword.text,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +48,7 @@ class ResetPasswordView extends GetView<AuthController> {
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Form(
-                  key: controller.resetFormKey,
+                  key: _formKey,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
@@ -42,7 +69,7 @@ class ResetPasswordView extends GetView<AuthController> {
                       ),
                       const SizedBox(height: 24),
                       TextFormField(
-                        controller: controller.resetTokenController,
+                        controller: _token,
                         decoration: const InputDecoration(
                           labelText: 'Reset token',
                           prefixIcon: Icon(Icons.key_rounded),
@@ -52,7 +79,7 @@ class ResetPasswordView extends GetView<AuthController> {
                       const SizedBox(height: 16),
                       Obx(
                         () => TextFormField(
-                          controller: controller.newPasswordController,
+                          controller: _newPassword,
                           obscureText: controller.obscureNewPassword.value,
                           decoration: InputDecoration(
                             labelText: 'New password',
@@ -70,17 +97,16 @@ class ResetPasswordView extends GetView<AuthController> {
                       const SizedBox(height: 16),
                       Obx(
                         () => TextFormField(
-                          controller: controller.confirmPasswordController,
+                          controller: _confirmPassword,
                           obscureText: controller.obscureNewPassword.value,
                           decoration: const InputDecoration(
                             labelText: 'Confirm new password',
                             prefixIcon: Icon(Icons.lock_person_outlined),
                           ),
-                          validator: (v) =>
-                              v != controller.newPasswordController.text
-                                  ? 'Passwords do not match'
-                                  : null,
-                          onFieldSubmitted: (_) => controller.resetPassword(),
+                          validator: (v) => v != _newPassword.text
+                              ? 'Passwords do not match'
+                              : null,
+                          onFieldSubmitted: (_) => _submit(),
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -88,9 +114,8 @@ class ResetPasswordView extends GetView<AuthController> {
                         () => SizedBox(
                           width: double.infinity,
                           child: FilledButton(
-                            onPressed: controller.resetting.value
-                                ? null
-                                : controller.resetPassword,
+                            onPressed:
+                                controller.resetting.value ? null : _submit,
                             child: controller.resetting.value
                                 ? const SizedBox(
                                     width: 22,

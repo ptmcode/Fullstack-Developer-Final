@@ -5,8 +5,11 @@ import com.school.management.common.constant.Status;
 import com.school.management.common.exception.AppException;
 import com.school.management.enrollment.dto.EnrollmentDtos.GradeRequest;
 import com.school.management.enrollment.dto.EnrollmentDtos.GradeResponse;
+import com.school.management.masterdata.student.Student;
+import com.school.management.masterdata.student.StudentRepository;
 import com.school.management.masterdata.subject.Subject;
 import com.school.management.masterdata.subject.SubjectRepository;
+import com.school.management.notification.PushNotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,6 +28,8 @@ public class GradeService {
     private final GradeRepository gradeRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final SubjectRepository subjectRepository;
+    private final StudentRepository studentRepository;
+    private final PushNotificationService pushNotificationService;
 
     @Transactional(readOnly = true)
     public List<GradeResponse> listByEnrollment(Integer enrollmentId) {
@@ -71,7 +76,9 @@ public class GradeService {
         grade.setStatus(Status.ACTIVE);
         apply(grade, request);
         Grade saved = gradeRepository.save(grade);
-        return enrich(List.of(saved)).apply(saved);
+        GradeResponse response = enrich(List.of(saved)).apply(saved);
+        notifyStudent(enrollment.getStudentId(), response, "New grade recorded");
+        return response;
     }
 
     @Auditable(action = "UPDATE", entity = "GRADE")
@@ -84,7 +91,10 @@ public class GradeService {
         }
         apply(grade, request);
         Grade saved = gradeRepository.save(grade);
-        return enrich(List.of(saved)).apply(saved);
+        GradeResponse response = enrich(List.of(saved)).apply(saved);
+        enrollmentRepository.findById(saved.getEnrollmentId())
+                .ifPresent(e -> notifyStudent(e.getStudentId(), response, "Grade updated"));
+        return response;
     }
 
     @Auditable(action = "DELETE", entity = "GRADE")
@@ -94,6 +104,15 @@ public class GradeService {
         grade.setStatus(Status.DELETED);
         Grade saved = gradeRepository.save(grade);
         return enrich(List.of(saved)).apply(saved);
+    }
+
+    /** Pushes a grade notification to the student's account, when the student has one linked. */
+    private void notifyStudent(Integer studentId, GradeResponse grade, String title) {
+        studentRepository.findById(studentId)
+                .map(Student::getUserId)
+                .ifPresent(userId -> pushNotificationService.notifyUser(userId, title,
+                        "You scored %s in %s (term %s)".formatted(grade.score(), grade.subjectName(), grade.term()),
+                        PushNotificationService.TYPE_GRADE, "GRADE", String.valueOf(grade.id())));
     }
 
     private void apply(Grade grade, GradeRequest request) {

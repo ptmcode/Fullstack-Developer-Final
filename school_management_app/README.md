@@ -67,10 +67,14 @@ flutter test           # unit + widget tests (models, ApiClient refresh flow, wi
   per-student report-card PDF with enrollments, grades and average.
 - **QR badges** — ID-card dialog with a JSON QR payload for every student
   (detail screen) and for the signed-in user (profile).
-- **Push notifications** — Firebase Cloud Messaging: permission request,
-  device token (copyable from Profile for console test sends), automatic
-  subscription to the `announcements` topic, foreground banner + background
-  handler. iOS needs an APNs key in Firebase; Android works out of the box.
+- **Push notifications** — Firebase Cloud Messaging end-to-end with the
+  backend: the device FCM token is registered via `POST /devices` after every
+  sign-in (and on token refresh), so the server can target this device when a
+  grade or enrollment is recorded. Foreground pushes show a real system
+  banner; background/terminated pushes land in the tray.
+- **Notification inbox** — `/notifications` with All/Unread filters, unread
+  badge on the app bar bell, tap-to-read, mark-all-read, and an **Announce**
+  composer for admins/teachers (broadcast by role or to specific user ids).
 
 ## Project structure (Clean Architecture)
 

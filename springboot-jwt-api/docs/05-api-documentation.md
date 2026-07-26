@@ -1,6 +1,6 @@
 # 5. API Documentation
 
-Complete REST API reference for the School Management System — **48 endpoints**, generated
+Complete REST API reference for the School Management System — **56 endpoints**, generated
 from the live OpenAPI specification (springdoc). Machine-readable versions:
 [openapi.json](api/openapi.json) · [openapi.yaml](api/openapi.yaml).
 
@@ -129,6 +129,24 @@ With the application running:
 | `POST` | `/api/v1/grades` | Record a grade — Score 0-100, one grade per enrollment + subject + term | `grade.create` |
 | `DELETE` | `/api/v1/grades/{id}` | Delete a grade (soft delete) | `grade.delete` |
 | `PUT` | `/api/v1/grades/{id}` | Update a grade score | `grade.update` |
+
+## Devices
+
+| Method | Path | Description | Auth |
+|--------|------|-------------|------|
+| `DELETE` | `/api/v1/devices` | Unregister a device — Stops push delivery to the given token | Authenticated |
+| `GET` | `/api/v1/devices` | List my registered devices | Authenticated |
+| `POST` | `/api/v1/devices` | Register this device for push — Stores the FCM registration token of the signed-in user's device. Call after login and whenever Firebase rotates the token. | Authenticated |
+
+## Notifications
+
+| Method | Path | Description | Auth |
+|--------|------|-------------|------|
+| `GET` | `/api/v1/notifications` | My notifications — Paginated inbox; pass unreadOnly=true to filter | `notification.read` |
+| `PUT` | `/api/v1/notifications/read-all` | Mark all my notifications as read | `notification.read` |
+| `POST` | `/api/v1/notifications/send` | Send a push notification — Broadcast to every active user of a role (e.g. ROLE_STUDENT) or to an explicit list of userIds | `notification.send` |
+| `GET` | `/api/v1/notifications/unread-count` | Unread notification count — For the app's badge counter | `notification.read` |
+| `PUT` | `/api/v1/notifications/{id}/read` | Mark one notification as read | `notification.read` |
 
 ## Audit Log
 

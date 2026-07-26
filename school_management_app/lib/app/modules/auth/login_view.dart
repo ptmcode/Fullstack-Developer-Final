@@ -105,12 +105,40 @@ class _BrandPanel extends StatelessWidget {
   }
 }
 
-class _LoginForm extends GetView<AuthController> {
+/// Owns its text controllers: the auth routes share one GetX controller, so
+/// text state must not outlive—or be outlived by—the widget using it.
+class _LoginForm extends StatefulWidget {
+  @override
+  State<_LoginForm> createState() => _LoginFormState();
+}
+
+class _LoginFormState extends State<_LoginForm> {
+  final _formKey = GlobalKey<FormState>();
+  late final AuthController controller = Get.find<AuthController>();
+  late final _username =
+      TextEditingController(text: controller.rememberedUsername);
+  final _password = TextEditingController();
+
+  @override
+  void dispose() {
+    _username.dispose();
+    _password.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    controller.login(
+      username: _username.text.trim(),
+      password: _password.text,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Form(
-      key: controller.loginFormKey,
+      key: _formKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -124,7 +152,7 @@ class _LoginForm extends GetView<AuthController> {
               style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
           const SizedBox(height: 32),
           TextFormField(
-            controller: controller.usernameController,
+            controller: _username,
             textInputAction: TextInputAction.next,
             autofillHints: const [AutofillHints.username],
             decoration: const InputDecoration(
@@ -136,10 +164,10 @@ class _LoginForm extends GetView<AuthController> {
           const SizedBox(height: 16),
           Obx(
             () => TextFormField(
-              controller: controller.passwordController,
+              controller: _password,
               obscureText: controller.obscurePassword.value,
               autofillHints: const [AutofillHints.password],
-              onFieldSubmitted: (_) => controller.login(),
+              onFieldSubmitted: (_) => _submit(),
               decoration: InputDecoration(
                 labelText: 'Password',
                 prefixIcon: const Icon(Icons.lock_outline_rounded),
@@ -175,7 +203,7 @@ class _LoginForm extends GetView<AuthController> {
             () => SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: controller.loggingIn.value ? null : controller.login,
+                onPressed: controller.loggingIn.value ? null : _submit,
                 child: controller.loggingIn.value
                     ? const SizedBox(
                         width: 22,

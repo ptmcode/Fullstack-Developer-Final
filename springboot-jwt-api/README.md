@@ -15,6 +15,7 @@ deliverables (requirement analysis, system design, database design).
 | Backend | Java 21, Spring Boot 3.5 (Web, Data JPA, Security, Validation, AOP) |
 | Database | PostgreSQL, schema managed by **Flyway** (V1–V4) |
 | Security | JWT access tokens (~15 min) + refresh tokens, BCrypt, role→permission RBAC |
+| Push notifications | Firebase Cloud Messaging (firebase-admin) — dry-run without a service account |
 | API docs | springdoc-openapi / Swagger UI |
 | UI | Static Bootstrap 5 pages served by Spring Boot (`src/main/resources/static`) |
 | Build | Gradle |
@@ -73,6 +74,7 @@ com.school.management
 ├── masterdata/      Students, teachers, subjects, classes (CRUD + search + paging)
 ├── enrollment/      Enrollments + grades (business module)
 ├── dashboard/       Summary statistics
+├── notification/    Firebase push + in-app notification inbox
 └── auditlog/        Immutable audit trail + search API
 ```
 

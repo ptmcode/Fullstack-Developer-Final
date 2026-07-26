@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../core/constants/app_permissions.dart';
 import '../../core/widgets/shared_widgets.dart';
 import '../audit/audit_view.dart';
 import '../classes/classes_view.dart';
 import '../dashboard/dashboard_view.dart';
 import '../enrollments/enrollments_view.dart';
+import '../notifications/notifications_controller.dart';
+import '../notifications/notifications_view.dart';
 import '../profile/profile_view.dart';
 import '../roles/roles_view.dart';
 import '../students/students_view.dart';
@@ -34,6 +37,7 @@ class ShellView extends GetView<ShellController> {
     () => const RolesView(),
     () => const AuditView(),
     () => const ProfileView(),
+    () => const NotificationsView(),
   ];
 
   @override
@@ -46,6 +50,9 @@ class ShellView extends GetView<ShellController> {
             centerTitle: !isWide,
             title: Obx(() => Text(controller.current.label)),
             actions: [
+              if (controller.session.hasPermission(
+                  AppPermissions.notificationRead))
+                _NotificationBell(controller: controller),
               Obx(
                 () => IconButton(
                   tooltip: 'Toggle theme',
@@ -151,6 +158,57 @@ class ShellView extends GetView<ShellController> {
   }
 }
 
+/// Bell with the live unread badge; opens the notifications page.
+class _NotificationBell extends StatelessWidget {
+  const _NotificationBell({required this.controller});
+
+  final ShellController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    // The inbox controller owns the counter; it is created lazily, so make
+    // sure it exists before the notifications page is ever opened.
+    final notifications = Get.find<NotificationsController>();
+    return Obx(() {
+      final count = notifications.unreadCount.value;
+      return Stack(
+        alignment: Alignment.center,
+        children: [
+          IconButton(
+            tooltip: 'Notifications',
+            onPressed: () =>
+                controller.select(ShellController.notificationsIndex),
+            icon: const Icon(Icons.notifications_none_rounded),
+          ),
+          if (count > 0)
+            Positioned(
+              top: 8,
+              right: 6,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                constraints: const BoxConstraints(minWidth: 17),
+                decoration: BoxDecoration(
+                  color: scheme.error,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  count > 99 ? '99+' : '$count',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: scheme.onError,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      );
+    });
+  }
+}
+
 class _UserMenu extends StatelessWidget {
   const _UserMenu({required this.controller});
 
@@ -166,7 +224,7 @@ class _UserMenu extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         onSelected: (value) {
           if (value == 'profile') {
-            controller.select(ShellController.destinations.length - 1);
+            controller.select(ShellController.profileIndex);
           } else if (value == 'logout') {
             controller.logout();
           }

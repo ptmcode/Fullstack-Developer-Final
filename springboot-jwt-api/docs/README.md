@@ -16,7 +16,8 @@ will be removed once the new modules are complete.
 | 2 | [System Design](02-system-design.md) | Sprint 1 | Architecture, security design, API conventions, endpoint catalog |
 | 3 | [Database Design](03-database-design.md) | Sprint 1 | ERD, data dictionary, Flyway migration plan, seed data |
 | 4 | [Setup & Run Guide](04-setup-guide.md) | Sprint 2 | PostgreSQL via Docker, credentials, initial data, running the app |
-| 5 | [API Documentation](05-api-documentation.md) | Sprint 2 | All 48 endpoints with permissions; exported OpenAPI spec in [api/](api/) |
+| 5 | [API Documentation](05-api-documentation.md) | Sprint 2 | All 56 endpoints with permissions; exported OpenAPI spec in [api/](api/) |
+| 6 | [Push Notifications](06-push-notifications.md) | Sprint 2 | Firebase Cloud Messaging: service account setup, Flutter integration, data model |
 
 ## Project Scope
 

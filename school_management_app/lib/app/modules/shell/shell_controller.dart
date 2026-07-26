@@ -102,7 +102,17 @@ class ShellController extends GetxController {
       selectedIcon: Icons.person_rounded,
       label: 'My Profile',
     ),
+    ShellDestination(
+      icon: Icons.notifications_none_rounded,
+      selectedIcon: Icons.notifications_rounded,
+      label: 'Notifications',
+      permission: AppPermissions.notificationRead,
+    ),
   ];
+
+  /// Master indexes referenced from outside the destination list.
+  static const profileIndex = 9;
+  static const notificationsIndex = 10;
 
   final selectedIndex = 0.obs;
 

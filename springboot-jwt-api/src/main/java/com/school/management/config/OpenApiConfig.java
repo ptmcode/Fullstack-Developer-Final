@@ -25,8 +25,11 @@ public class OpenApiConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("School Management System API")
-                        .description("REST API for the School Management System — "
-                                + "authentication, user management, master data, enrollments, grades and audit log")
+                        .description("REST API for the School Management System — authentication, "
+                                + "user management, master data, enrollments, grades, push notifications "
+                                + "(Firebase Cloud Messaging) and audit log.\n\n"
+                                + "Sign in with POST /api/v1/auth/login (admin/admin@123), then click "
+                                + "Authorize and paste the accessToken.")
                         .version("v1.0")
                         .contact(new Contact()
                                 .name("Sothea")

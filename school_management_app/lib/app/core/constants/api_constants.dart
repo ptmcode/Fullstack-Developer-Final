@@ -68,4 +68,14 @@ class ApiConstants {
 
   // Audit logs
   static const auditLogs = '/audit-logs';
+
+  // Devices (FCM tokens)
+  static const devices = '/devices';
+
+  // Notifications
+  static const notifications = '/notifications';
+  static const unreadCount = '/notifications/unread-count';
+  static const readAll = '/notifications/read-all';
+  static const sendNotification = '/notifications/send';
+  static String notificationRead(int id) => '/notifications/$id/read';
 }

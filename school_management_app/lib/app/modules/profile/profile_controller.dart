@@ -1,4 +1,3 @@
-import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 
 import '../../core/network/api_exception.dart';
@@ -19,10 +18,9 @@ class ProfileController extends GetxController {
 
   final loading = false.obs;
 
-  final passwordFormKey = GlobalKey<FormState>();
-  final currentPasswordController = TextEditingController();
-  final newPasswordController = TextEditingController();
-  final confirmPasswordController = TextEditingController();
+  // Text state lives in the widget (see _PasswordCard): a GetX controller
+  // can be disposed while its view is still mounted, and disposed
+  // TextEditingControllers throw on the next tap.
   final obscure = true.obs;
   final changingPassword = false.obs;
 
@@ -45,13 +43,16 @@ class ProfileController extends GetxController {
 
   /// Changing the password revokes all refresh tokens server-side, so a
   /// successful change must end the session and return to login.
-  Future<void> changePassword() async {
-    if (!(passwordFormKey.currentState?.validate() ?? false)) return;
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    if (changingPassword.value) return;
     changingPassword.value = true;
     try {
       final message = await _users.changeMyPassword(
-        currentPassword: currentPasswordController.text,
-        newPassword: newPasswordController.text,
+        currentPassword: currentPassword,
+        newPassword: newPassword,
       );
       AppSnackbar.success('$message — please sign in again.');
       await _session.endSession();
@@ -60,13 +61,5 @@ class ProfileController extends GetxController {
     } finally {
       changingPassword.value = false;
     }
-  }
-
-  @override
-  void onClose() {
-    currentPasswordController.dispose();
-    newPasswordController.dispose();
-    confirmPasswordController.dispose();
-    super.onClose();
   }
 }

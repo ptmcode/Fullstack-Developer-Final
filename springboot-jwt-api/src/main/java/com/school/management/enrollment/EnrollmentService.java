@@ -10,6 +10,7 @@ import com.school.management.masterdata.clazz.SchoolClass;
 import com.school.management.masterdata.clazz.SchoolClassRepository;
 import com.school.management.masterdata.student.Student;
 import com.school.management.masterdata.student.StudentRepository;
+import com.school.management.notification.PushNotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +30,7 @@ public class EnrollmentService {
     private final EnrollmentRepository enrollmentRepository;
     private final StudentRepository studentRepository;
     private final SchoolClassRepository classRepository;
+    private final PushNotificationService pushNotificationService;
 
     @Transactional(readOnly = true)
     public PageResponse<EnrollmentResponse> list(Integer studentId, Integer classId, Pageable pageable) {
@@ -92,7 +94,13 @@ public class EnrollmentService {
                 });
 
         Enrollment saved = enrollmentRepository.save(enrollment);
-        return enrich(List.of(saved)).apply(saved);
+        EnrollmentResponse response = enrich(List.of(saved)).apply(saved);
+        if (student.getUserId() != null) {
+            pushNotificationService.notifyUser(student.getUserId(), "Class enrollment",
+                    "You have been enrolled in %s (%s)".formatted(clazz.getName(), clazz.getClassCode()),
+                    PushNotificationService.TYPE_ENROLLMENT, "ENROLLMENT", String.valueOf(saved.getId()));
+        }
+        return response;
     }
 
     @Auditable(action = "DELETE", entity = "ENROLLMENT")

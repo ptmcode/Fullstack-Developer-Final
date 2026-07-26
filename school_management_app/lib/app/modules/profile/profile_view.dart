@@ -267,10 +267,40 @@ class _InfoCard extends StatelessWidget {
   }
 }
 
-class _PasswordCard extends StatelessWidget {
+/// Owns its text controllers so they can never outlive—or be outlived by—
+/// the GetX controller (see ProfileController).
+class _PasswordCard extends StatefulWidget {
   const _PasswordCard({required this.controller});
 
   final ProfileController controller;
+
+  @override
+  State<_PasswordCard> createState() => _PasswordCardState();
+}
+
+class _PasswordCardState extends State<_PasswordCard> {
+  final _formKey = GlobalKey<FormState>();
+  final _current = TextEditingController();
+  final _newPassword = TextEditingController();
+  final _confirm = TextEditingController();
+
+  ProfileController get controller => widget.controller;
+
+  @override
+  void dispose() {
+    _current.dispose();
+    _newPassword.dispose();
+    _confirm.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    controller.changePassword(
+      currentPassword: _current.text,
+      newPassword: _newPassword.text,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -278,7 +308,7 @@ class _PasswordCard extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Form(
-          key: controller.passwordFormKey,
+          key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -301,7 +331,7 @@ class _PasswordCard extends StatelessWidget {
                 () => Column(
                   children: [
                     TextFormField(
-                      controller: controller.currentPasswordController,
+                      controller: _current,
                       obscureText: controller.obscure.value,
                       decoration: InputDecoration(
                         labelText: 'Current password',
@@ -317,7 +347,7 @@ class _PasswordCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 14),
                     TextFormField(
-                      controller: controller.newPasswordController,
+                      controller: _newPassword,
                       obscureText: controller.obscure.value,
                       decoration: const InputDecoration(
                         labelText: 'New password',
@@ -327,16 +357,15 @@ class _PasswordCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 14),
                     TextFormField(
-                      controller: controller.confirmPasswordController,
+                      controller: _confirm,
                       obscureText: controller.obscure.value,
                       decoration: const InputDecoration(
                         labelText: 'Confirm new password',
                         prefixIcon: Icon(Icons.lock_person_outlined),
                       ),
-                      validator: (v) =>
-                          v != controller.newPasswordController.text
-                              ? 'Passwords do not match'
-                              : null,
+                      validator: (v) => v != _newPassword.text
+                          ? 'Passwords do not match'
+                          : null,
                     ),
                   ],
                 ),
@@ -346,9 +375,8 @@ class _PasswordCard extends StatelessWidget {
                 () => SizedBox(
                   width: double.infinity,
                   child: FilledButton.icon(
-                    onPressed: controller.changingPassword.value
-                        ? null
-                        : controller.changePassword,
+                    onPressed:
+                        controller.changingPassword.value ? null : _submit,
                     icon: controller.changingPassword.value
                         ? const SizedBox(
                             width: 18,

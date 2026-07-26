@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../data/models/user_model.dart';
 import '../../routes/app_routes.dart';
 import 'preferences_service.dart';
+import 'push_notification_service.dart';
 import 'token_storage_service.dart';
 
 /// Holds the signed-in user for the whole app lifetime and answers
@@ -35,6 +36,11 @@ class SessionService extends GetxService {
   Future<void> setUser(UserModel user) async {
     currentUser.value = user;
     await _preferences.setCachedProfile(user.toJson());
+    // The backend can only push to devices it knows about; register this
+    // one for whoever just signed in (fire-and-forget, never blocks login).
+    if (Get.isRegistered<PushNotificationService>()) {
+      Get.find<PushNotificationService>().registerDeviceWithBackend();
+    }
   }
 
   bool hasPermission(String code) => user?.hasPermission(code) ?? false;

@@ -33,6 +33,15 @@ app:
     refreshExpirationMs: 86400000   # refresh token: 24 hours
   password-reset:
     expirationMinutes: 30
+  firebase:
+    # Push notifications. Without a service account key the app logs payloads
+    # instead of delivering them (dry-run) — see docs/06-push-notifications.md.
+    enabled: true
+    # Path to the Firebase service account key — NEVER commit the key itself (this repo is public).
+    # Defaults to ~/.secrets/firebase-service-account.json; override with FIREBASE_CREDENTIALS.
+    # If the file is absent the app still runs and logs pushes instead of sending them.
+    credentials-path: ${FIREBASE_CREDENTIALS:${user.home}/.secrets/firebase-service-account.json}
+    project-id: ${FIREBASE_PROJECT_ID:}
 
 springdoc:
   swagger-ui:
